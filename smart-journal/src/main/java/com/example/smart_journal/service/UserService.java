@@ -2,22 +2,29 @@ package com.example.smart_journal.service;
 
 import com.example.smart_journal.model.User;
 import com.example.smart_journal.repository.UserRepository;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 @Service
 public class UserService {
     private final UserRepository repo;
+    private final GreetingService greetingService;
+    private final PasswordEncoder passwordEncoder;
 
-    public UserService(UserRepository repo) {
+    public UserService(UserRepository repo, GreetingService greetingService) {
         this.repo = repo;
+        this.greetingService = greetingService;
+        this.passwordEncoder = new BCryptPasswordEncoder();
     }
 
     public String signup(String email, String name, String password) {
         if (repo.existsById(email)) {
             return "Email already exists!";
         }
-        repo.save(new User(email, name, password));
-        return "Sign up successful!";
+        String hashedPassword = passwordEncoder.encode(password);
+        repo.save(new User(email, name, hashedPassword));
+        return "Skign up successful!";
     }
 
     public String login(String email, String password) {
@@ -25,9 +32,11 @@ public class UserService {
         if (user == null) {
             return "Email does not exist!";
         }
-        if (!user.getPassword().equals(password)) {
+        if (!passwordEncoder.matches(password, user.getPassword())) {
             return "Incorrect password!";
         }
-        return "Login successful! Welcome " + user.getDisplayName();
+
+        String greeting = greetingService.getGreeting();
+        return greeting + ", " + user.getDisplayName();
     }
 }
