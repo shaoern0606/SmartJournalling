@@ -24,7 +24,7 @@ public class UserService {
         }
         String hashedPassword = passwordEncoder.encode(password);
         repo.save(new User(email, name, hashedPassword));
-        return "Skign up successful!";
+        return "Sign up successful!";
     }
 
     public String login(String email, String password) {
